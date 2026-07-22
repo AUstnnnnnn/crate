@@ -52,11 +52,21 @@ def expand_entries(info: dict) -> list[dict]:
 class Downloader:
     """Integration wrapper around yt_dlp.YoutubeDL (not unit-tested)."""
 
-    def download(self, url: str, cfg: Config, preset: str, progress_hook) -> Path:
+    def download(
+        self, url: str, cfg: Config, preset: str, progress_hook
+    ) -> tuple[Path, MediaMeta]:
         import yt_dlp  # local import: keeps module importable without the dep
 
         opts = build_ydl_opts(cfg, preset, progress_hook)
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=True)
             entry = expand_entries(info)[0]
-            return Path(ydl.prepare_filename(entry))
+            meta = info_to_meta(entry, preset)
+            # requested_downloads carries the real post-processed path
+            # (e.g. the .wav after FFmpegExtractAudio), unlike prepare_filename.
+            reqs = entry.get("requested_downloads")
+            if reqs:
+                path = Path(reqs[-1]["filepath"])
+            else:
+                path = Path(ydl.prepare_filename(entry))
+            return path, meta

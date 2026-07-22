@@ -1,0 +1,5 @@
+#urlbar { height: 3; }
+#url { width: 1fr; }
+#preset { layout: horizontal; height: 3; }
+#preset > RadioButton { width: auto; margin: 0 2 0 0; }
+#queue { height: 1fr; }
