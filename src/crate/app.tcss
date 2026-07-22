@@ -1,5 +1,104 @@
-#urlbar { height: 3; }
-#url { width: 1fr; }
-#preset { layout: horizontal; height: 3; }
-#preset > RadioButton { width: auto; margin: 0 2 0 0; }
-#queue { height: 1fr; }
+Screen {
+    background: $background;
+}
+
+#banner {
+    height: 3;
+    padding: 1 0 0 2;
+    background: $background;
+    border-bottom: dashed $primary 30%;
+}
+
+#body {
+    padding: 1 2;
+}
+
+#urlbar {
+    height: 3;
+}
+
+#url {
+    width: 1fr;
+    background: $surface;
+    border: round $primary 40%;
+    color: $foreground;
+}
+
+#url:focus {
+    border: round $primary;
+}
+
+/* preset pads — the signature: three tactile pads, active one lit amber */
+#preset {
+    layout: horizontal;
+    height: auto;
+    width: auto;
+    margin: 1 0;
+    background: $background;
+    border: none;
+}
+
+#preset > RadioButton {
+    width: auto;
+    padding: 0 2;
+    margin: 0 1 0 0;
+    background: $surface;
+    color: $text-muted;
+    border: round $panel;
+}
+
+#preset > RadioButton.-on {
+    background: $primary 15%;
+    color: $primary;
+    text-style: bold;
+    border: round $primary;
+}
+
+#queue {
+    height: 1fr;
+    background: $surface;
+    color: $foreground;
+    scrollbar-size-vertical: 1;
+}
+
+#queue > .datatable--header {
+    background: $panel;
+    color: $primary;
+    text-style: bold;
+}
+
+#queue > .datatable--cursor {
+    background: $primary 20%;
+    color: $foreground;
+}
+
+#empty {
+    height: 1fr;
+    content-align: center middle;
+    color: $text-muted;
+    text-style: italic;
+}
+
+/* clip + advanced screens */
+#cliphead, #advhead {
+    padding: 1 2;
+    background: $panel;
+    color: $primary;
+    text-style: bold;
+}
+
+ClipScreen > Input, AdvancedScreen > Input {
+    margin: 1 2 0 2;
+    background: $surface;
+    border: round $primary 40%;
+}
+
+#clipstatus, #advstatus {
+    padding: 1 2;
+    color: $text-muted;
+}
+
+AdvancedScreen > Checkbox {
+    margin: 1 2 0 2;
+    background: $surface;
+}

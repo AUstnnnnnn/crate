@@ -8,8 +8,9 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
+from textual.theme import Theme
 from textual.widgets import (
-    Header, Footer, Input, DataTable, Static, RadioSet, RadioButton,
+    Footer, Input, DataTable, Static, RadioSet, RadioButton,
 )
 
 from crate.config import Config
@@ -17,7 +18,33 @@ from crate.library import resolve_path, write_sidecar
 from crate.probe import probe
 
 _PRESETS = ("archive", "sample", "video")
-_GLYPH = {"queued": "⏸", "downloading": "⣾", "done": "✓", "error": "✗"}
+_GLYPH = {"queued": "·", "downloading": "▸", "done": "◉", "error": "✕"}
+
+_BANNER = (
+    "[b #e0a44a]◉ crate[/]   "
+    "[#8a7d6d]dig · sample · archive[/]"
+)
+
+CRATE_THEME = Theme(
+    name="crate",
+    primary="#e0a44a",     # vinyl-label amber
+    secondary="#b5654a",   # clay
+    accent="#7fae5f",      # crate-stamp green
+    foreground="#ece3d3",  # warm off-white
+    background="#14100c",  # roasted near-black
+    surface="#1e1813",
+    panel="#26201a",
+    success="#7fae5f",
+    warning="#e0a44a",
+    error="#d9503f",
+    dark=True,
+    variables={
+        "block-cursor-background": "#e0a44a",
+        "block-cursor-foreground": "#14100c",
+        "input-selection-background": "#b5654a 35%",
+        "footer-key-foreground": "#e0a44a",
+    },
+)
 
 
 def progress_to_fraction(d: dict) -> float:
@@ -62,8 +89,8 @@ class CrateApp(App):
         self._download_fn = download_fn or self._real_download
 
     def compose(self) -> ComposeResult:
-        yield Header()
-        with Vertical():
+        yield Static(_BANNER, id="banner")
+        with Vertical(id="body"):
             with Horizontal(id="urlbar"):
                 yield Input(placeholder="paste a URL, press Enter…", id="url")
             with RadioSet(id="preset"):
@@ -71,11 +98,19 @@ class CrateApp(App):
                     yield RadioButton(name, value=(name == self.current_preset),
                                       id=f"preset-{name}")
             yield DataTable(id="queue", cursor_type="row")
+            yield Static("crate's empty — paste a URL to start digging",
+                         id="empty")
         yield Footer()
 
     def on_mount(self) -> None:
+        self.register_theme(CRATE_THEME)
+        self.theme = "crate"
         table = self.query_one("#queue", DataTable)
-        table.add_columns("", "title", "preset", "status")
+        table.add_column("", width=2)
+        table.add_column("title", width=44)
+        table.add_column("preset", width=9)
+        table.add_column("status", width=14)
+        table.display = False
         from crate.advanced import missing_tools
         missing = missing_tools()
         if missing:
@@ -99,6 +134,8 @@ class CrateApp(App):
         item = QueueItem(url=url, preset=preset, title=url)
         self.items.append(item)
         table = self.query_one("#queue", DataTable)
+        self.query_one("#empty", Static).display = False
+        table.display = True
         item.row_key = table.add_row(_GLYPH["queued"], item.title, preset, "queued")
         return item
 
@@ -149,13 +186,14 @@ class CrateApp(App):
         cols = table.ordered_columns
         if item.status == "downloading":
             status_txt = f"{int(item.progress * 100)}%"
-        else:
+        elif item.detail:
             status_txt = item.detail
+        else:
+            status_txt = item.status
         table.update_cell(item.row_key, cols[0].key, _GLYPH[item.status])
         table.update_cell(item.row_key, cols[1].key, item.title)
         table.update_cell(item.row_key, cols[2].key, item.preset)
-        table.update_cell(item.row_key, cols[3].key,
-                          f"{item.status} {status_txt}".strip())
+        table.update_cell(item.row_key, cols[3].key, status_txt)
 
     # ── actions ──────────────────────────────────────────────────────────
     def action_clip(self) -> None:

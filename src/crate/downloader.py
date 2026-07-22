@@ -12,6 +12,15 @@ PRESET_FORMATS = {
 }
 
 
+class _SilentLogger:
+    """Swallow yt-dlp console output so it never corrupts the TUI."""
+
+    def debug(self, msg): pass
+    def info(self, msg): pass
+    def warning(self, msg): pass
+    def error(self, msg): pass
+
+
 def build_ydl_opts(cfg: Config, preset: str, progress_hook) -> dict:
     staging = cfg.library_root / ".staging"
     opts: dict = {
@@ -21,6 +30,8 @@ def build_ydl_opts(cfg: Config, preset: str, progress_hook) -> dict:
         "noplaylist": False,
         "quiet": True,
         "no_warnings": True,
+        "noprogress": True,
+        "logger": _SilentLogger(),
     }
     if preset == "sample":
         opts["postprocessors"] = [{
