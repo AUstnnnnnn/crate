@@ -43,12 +43,15 @@ Everything lands in an organized tree under your library root:
 
 ```bash
 python3 -m venv venv
-./venv/bin/pip install -r requirements.txt
+./venv/bin/pip install -e .        # installs deps + the `crate` command
+ln -sf "$PWD/venv/bin/crate" ~/.local/bin/crate   # put it on your PATH
 ```
 
 ## Run
 
 ```bash
+crate                       # from anywhere
+# or, without the PATH symlink:
 ./venv/bin/python -m crate
 ```
 
