@@ -76,6 +76,7 @@ class CrateApp(App):
     BINDINGS = [
         Binding("left", "preset_prev", "◄ mode", priority=True),
         Binding("right", "preset_next", "mode ►", priority=True),
+        Binding("f1", "toggle_hints", "hide hints", priority=True),
         Binding("f2", "advanced", "advanced"),
         Binding("f3", "clip", "clip", priority=True),
         Binding("f4", "open_folder", "open folder", priority=True),
@@ -113,6 +114,7 @@ class CrateApp(App):
         table.add_column("preset", width=9)
         table.add_column("status", width=14)
         table.display = False
+        self.query_one(Footer).display = self.cfg.show_hints
         self._restore_state()
         from crate.advanced import missing_tools
         missing = missing_tools()
@@ -153,6 +155,12 @@ class CrateApp(App):
         idx = (_PRESETS.index(self.current_preset) + delta) % len(_PRESETS)
         # setting the pad's value fires RadioSet.Changed -> updates current_preset
         self.query_one(f"#preset-{_PRESETS[idx]}", RadioButton).value = True
+
+    def action_toggle_hints(self) -> None:
+        from crate.config import save_config
+        self.cfg.show_hints = not self.cfg.show_hints
+        self.query_one(Footer).display = self.cfg.show_hints
+        save_config(self.cfg)  # persist across sessions
 
     def action_preset_prev(self) -> None:
         self._cycle_preset(-1)

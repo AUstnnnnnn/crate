@@ -45,3 +45,19 @@ async def test_empty_url_does_not_enqueue(tmp_path):
         app.query_one("#url", Input).focus()
         await pilot.press("enter")
         assert app.items == []
+
+
+@pytest.mark.asyncio
+async def test_f1_toggles_and_persists_hints(tmp_path, monkeypatch):
+    import crate.config as cfgmod
+    saved = {}
+    monkeypatch.setattr(cfgmod, "save_config", lambda c, p=None: saved.update(show=c.show_hints))
+    from textual.widgets import Footer
+    cfg = Config(library_root=tmp_path)
+    app = CrateApp(cfg=cfg, download_fn=lambda *a, **k: None)
+    async with app.run_test() as pilot:
+        assert app.query_one(Footer).display is True
+        await pilot.press("f1")
+        assert app.cfg.show_hints is False
+        assert app.query_one(Footer).display is False
+        assert saved["show"] is False

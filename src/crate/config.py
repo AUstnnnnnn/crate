@@ -17,6 +17,7 @@ class Config:
     sample_format: str = "wav"
     normalize: bool = False
     filename_template: str = "%(title)s"
+    show_hints: bool = True
 
     @classmethod
     def defaults(cls) -> "Config":
@@ -35,6 +36,7 @@ def load_config(path: Path | None = None) -> Config:
         sample_format=data.get("sample_format", "wav"),
         normalize=data.get("normalize", False),
         filename_template=data.get("filename_template", "%(title)s"),
+        show_hints=data.get("show_hints", True),
     )
 
 

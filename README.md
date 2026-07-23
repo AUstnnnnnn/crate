@@ -65,6 +65,7 @@ crate                       # from anywhere
 | ◄ / ► | switch mode (library / sample / video) |
 | ↑ / ↓ | move in the queue |
 | Enter (on a row) | reveal that file in Finder |
+| F1 | show/hide the hint bar (remembered across sessions) |
 | F3 | clip the selected finished item |
 | F2 | advanced options (format, normalize, output override) — next download only |
 | F4 | open the library folder |
