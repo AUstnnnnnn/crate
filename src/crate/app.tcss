@@ -28,20 +28,22 @@ Screen {
     border: round $primary;
 }
 
-/* preset pads — the signature: three tactile pads, active one lit amber */
+/* preset pads — the signature: three tactile pads filling the row, active lit */
 #preset {
     layout: horizontal;
     height: auto;
-    width: auto;
+    width: 1fr;
     margin: 1 0;
     background: $background;
     border: none;
 }
 
 #preset > RadioButton {
-    width: auto;
+    width: 1fr;
+    content-align: center middle;
+    text-align: center;
     padding: 0 2;
-    margin: 0 1 0 0;
+    margin: 0 1;
     background: $surface;
     color: $text-muted;
     border: round $panel;
@@ -67,7 +69,8 @@ Screen {
 }
 
 #queue {
-    height: 1fr;
+    height: auto;
+    max-height: 18;
     background: $surface;
     color: $foreground;
     scrollbar-size-vertical: 1;
@@ -85,8 +88,11 @@ Screen {
 }
 
 #empty {
-    height: 1fr;
+    height: auto;
+    padding: 2 0;
+    width: 1fr;
     content-align: center middle;
+    text-align: center;
     color: $text-muted;
     text-style: italic;
 }

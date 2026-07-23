@@ -113,12 +113,36 @@ class CrateApp(App):
         table.add_column("preset", width=9)
         table.add_column("status", width=14)
         table.display = False
+        self._restore_state()
         from crate.advanced import missing_tools
         missing = missing_tools()
         if missing:
             self.notify(f"missing tools: {', '.join(missing)}",
                         severity="error", timeout=10)
         self.query_one("#url", Input).focus()
+
+    def _restore_state(self) -> None:
+        from crate.state import load_items
+        table = self.query_one("#queue", DataTable)
+        for rec in load_items():
+            item = QueueItem(
+                url=rec.get("url", ""),
+                preset=rec.get("preset", "sample"),
+                title=rec.get("title", ""),
+                status="done",
+                detail=rec.get("detail", ""),
+                path=Path(rec["path"]) if rec.get("path") else None,
+            )
+            self.items.append(item)
+            item.row_key = table.add_row(
+                _GLYPH["done"], item.title, item.preset, item.detail)
+        if self.items:
+            self.query_one("#empty", Static).display = False
+            table.display = True
+
+    def _save_state(self) -> None:
+        from crate.state import save_items
+        save_items(self.items)
 
     # ── interaction ──────────────────────────────────────────────────────
     def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
@@ -139,6 +163,14 @@ class CrateApp(App):
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "url":
             self.action_download()
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        # Enter on a queue row reveals the file in Finder
+        item = next((i for i in self.items if i.row_key == event.row_key), None)
+        if item and item.path and item.path.exists():
+            subprocess.run(["open", "-R", str(item.path)], check=False)
+        elif item:
+            self.notify("file not found on disk", severity="warning")
 
     def _effective_cfg(self) -> Config:
         return self.overrides.apply(self.cfg) if self.overrides else self.cfg
@@ -192,6 +224,7 @@ class CrateApp(App):
             item.status = "error"
             item.detail = str(exc).splitlines()[0][:60]
         self._refresh_row(item)
+        self._save_state()
 
     def _refresh_row(self, item: QueueItem) -> None:
         table = self.query_one("#queue", DataTable)

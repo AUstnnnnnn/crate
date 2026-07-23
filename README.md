@@ -17,6 +17,8 @@ wrapped in a fast TUI, running entirely on your machine.
   - `video` — best video + audio, merged to mp4.
 - **Metadata travels with the file.** Title, artist, date, and source URL are
   embedded directly into each download (via ffmpeg) — no sidecar files.
+- **Persistent crate.** Finished downloads stay in the list across sessions.
+  Press Enter on any row to reveal that file in Finder.
 - **Live queue.** Each download is its own row with live progress. One failed
   URL never takes down the others.
 - **Clip trimming (the good part).** On any finished item, mark in/out
@@ -59,8 +61,10 @@ crate                       # from anywhere
 
 | Key | Action |
 |-----|--------|
-| Enter | download the URL with the selected preset |
-| ↑ / ↓ | pick preset pad / move in the queue |
+| Enter (URL field) | download the URL with the selected preset |
+| ◄ / ► | switch mode (library / sample / video) |
+| ↑ / ↓ | move in the queue |
+| Enter (on a row) | reveal that file in Finder |
 | F3 | clip the selected finished item |
 | F2 | advanced options (format, normalize, output override) — next download only |
 | F4 | open the library folder |
