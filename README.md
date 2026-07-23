@@ -74,8 +74,8 @@ preview the slice, `e` to export, `Esc` to go back.
 `~/.config/crate/config.toml` (created with defaults on first run):
 
 ```toml
-library_root = "~/Desktop/Dev/sounds"
-default_preset = "sample"   # archive | sample | video
+library_root = "~/Desktop/crate"
+default_preset = "sample"   # library | sample | video
 sample_format = "wav"       # wav | flac
 normalize = false           # EBU R128 loudnorm on sample extract
 filename_template = "%(title)s"
