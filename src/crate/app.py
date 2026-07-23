@@ -74,6 +74,8 @@ class CrateApp(App):
     TITLE = "crate"
     SUB_TITLE = "dig for media"
     BINDINGS = [
+        Binding("left", "preset_prev", "◄ mode", priority=True),
+        Binding("right", "preset_next", "mode ►", priority=True),
         Binding("f2", "advanced", "advanced"),
         Binding("f3", "clip", "clip", priority=True),
         Binding("f4", "open_folder", "open folder", priority=True),
@@ -122,6 +124,17 @@ class CrateApp(App):
     def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
         if event.radio_set.id == "preset":
             self.current_preset = _PRESETS[event.index]
+
+    def _cycle_preset(self, delta: int) -> None:
+        idx = (_PRESETS.index(self.current_preset) + delta) % len(_PRESETS)
+        # setting the pad's value fires RadioSet.Changed -> updates current_preset
+        self.query_one(f"#preset-{_PRESETS[idx]}", RadioButton).value = True
+
+    def action_preset_prev(self) -> None:
+        self._cycle_preset(-1)
+
+    def action_preset_next(self) -> None:
+        self._cycle_preset(1)
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "url":
