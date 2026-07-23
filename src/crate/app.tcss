@@ -54,6 +54,18 @@ Screen {
     border: round $primary;
 }
 
+/* kill the block-cursor box drawn over the pad label — the pill is enough */
+#preset > RadioButton > .toggle--label {
+    background: transparent;
+    text-style: none;
+}
+
+#preset > RadioButton.-on > .toggle--label {
+    background: transparent;
+    color: $primary;
+    text-style: bold;
+}
+
 #queue {
     height: 1fr;
     background: $surface;
