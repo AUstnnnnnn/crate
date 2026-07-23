@@ -12,22 +12,22 @@ wrapped in a fast TUI, running entirely on your machine.
 ## What it does
 
 - **Three presets, one Enter.** Paste a URL, pick a pad, hit Enter.
-  - `archive` — best quality, original container, metadata + thumbnail embedded.
+  - `library` — best quality, original container, kept by uploader.
   - `sample` — audio extracted to WAV (lossless, sampler-ready).
   - `video` — best video + audio, merged to mp4.
+- **Metadata travels with the file.** Title, artist, date, and source URL are
+  embedded directly into each download (via ffmpeg) — no sidecar files.
 - **Live queue.** Each download is its own row with live progress. One failed
   URL never takes down the others.
 - **Clip trimming (the good part).** On any finished item, mark in/out
   timecodes, audition the slice with `afplay`, and export just that piece as a
   WAV — straight into your samples folder.
-- **Metadata sidecar.** Every download drops a `.json` next to it (source URL,
-  uploader, duration, timestamp) so the archive stays searchable.
 
 Everything lands in an organized tree under your library root:
 
 ```
 <library>/
-  archive/<uploader>/<title>.<ext>
+  library/<uploader>/<title>.<ext>
   samples/<title>.wav
   samples/clips/<title>_0.32-0.40.wav
   video/<title>.mp4

@@ -1,0 +1,2 @@
+[console_scripts]
+crate = crate.__main__:main

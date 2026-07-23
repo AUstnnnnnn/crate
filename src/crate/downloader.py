@@ -6,7 +6,7 @@ from crate.config import Config
 from crate.library import MediaMeta
 
 PRESET_FORMATS = {
-    "archive": "bestvideo+bestaudio/best",
+    "library": "bestvideo+bestaudio/best",
     "sample": "bestaudio/best",
     "video": "bestvideo[ext=mp4]+bestaudio/best/best",
 }
@@ -33,13 +33,17 @@ def build_ydl_opts(cfg: Config, preset: str, progress_hook) -> dict:
         "noprogress": True,
         "logger": _SilentLogger(),
     }
+    pps: list[dict] = []
     if preset == "sample":
-        opts["postprocessors"] = [{
+        pps.append({
             "key": "FFmpegExtractAudio",
             "preferredcodec": cfg.sample_format,
-        }]
+        })
     elif preset == "video":
         opts["merge_output_format"] = "mp4"
+    # embed title/artist/date/etc into the file itself — no sidecar
+    pps.append({"key": "FFmpegMetadata"})
+    opts["postprocessors"] = pps
     return opts
 
 

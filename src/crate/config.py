@@ -7,7 +7,7 @@ from pathlib import Path
 import tomli_w
 
 DEFAULT_CONFIG_PATH = Path("~/.config/crate/config.toml").expanduser()
-_DEFAULT_LIBRARY_ROOT = "~/Desktop/Dev/sounds"
+_DEFAULT_LIBRARY_ROOT = "~/Desktop/crate"
 
 
 @dataclass

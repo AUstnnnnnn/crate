@@ -14,15 +14,15 @@ from textual.widgets import (
 )
 
 from crate.config import Config
-from crate.library import resolve_path, write_sidecar
+from crate.library import resolve_path
 from crate.probe import probe
 
-_PRESETS = ("archive", "sample", "video")
+_PRESETS = ("library", "sample", "video")
 _GLYPH = {"queued": "·", "downloading": "▸", "done": "◉", "error": "✕"}
 
 _BANNER = (
     "[b #e0a44a]◉ crate[/]   "
-    "[#8a7d6d]dig · sample · archive[/]"
+    "[#8a7d6d]dig · sample · library[/]"
 )
 
 CRATE_THEME = Theme(
@@ -171,7 +171,6 @@ class CrateApp(App):
             dest = resolve_path(cfg, meta)
             dest.parent.mkdir(parents=True, exist_ok=True)
             staged.replace(dest)
-            write_sidecar(dest, meta)
             item.title = meta.title
             item.path = dest
             item.status = "done"
