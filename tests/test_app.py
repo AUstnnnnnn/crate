@@ -17,6 +17,7 @@ async def test_enter_enqueues_with_default_preset(tmp_path):
     async with app.run_test() as pilot:
         app.query_one("#url", Input).value = "http://example.com/x"
         app.query_one("#url", Input).focus()
+        await pilot.pause()  # let focus land before the keypress (slow on Windows CI)
         await pilot.press("enter")
         assert len(app.items) == 1
         assert app.items[0].preset == "sample"
@@ -43,6 +44,7 @@ async def test_empty_url_does_not_enqueue(tmp_path):
     app = CrateApp(cfg=cfg, download_fn=lambda *a, **k: None)
     async with app.run_test() as pilot:
         app.query_one("#url", Input).focus()
+        await pilot.pause()
         await pilot.press("enter")
         assert app.items == []
 
@@ -88,6 +90,7 @@ async def test_apple_album_link_expands_into_one_row_per_song(tmp_path, monkeypa
     async with app.run_test() as pilot:
         app.query_one("#url", Input).value = "https://music.apple.com/us/album/saw/1"
         app.query_one("#url", Input).focus()
+        await pilot.pause()
         await pilot.press("enter")
         await pilot.pause()
         assert [i.title for i in app.items] == [
@@ -103,5 +106,6 @@ async def test_apple_song_link_enqueues_one_row(tmp_path):
         app.query_one("#url", Input).value = (
             "https://music.apple.com/us/album/a/1?i=2")
         app.query_one("#url", Input).focus()
+        await pilot.pause()
         await pilot.press("enter")
         assert len(app.items) == 1
