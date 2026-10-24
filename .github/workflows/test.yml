@@ -13,3 +13,18 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt -e .
       - run: python -m pytest -q
+  install:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - if: runner.os != 'Windows'
+        run: curl -LsSf https://raw.githubusercontent.com/AUstnnnnnn/crate/main/install.sh | sh
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: irm https://raw.githubusercontent.com/AUstnnnnnn/crate/main/install.ps1 | iex
+      - shell: bash
+        run: ls ~/.local/bin/crate*  # installed exe present
