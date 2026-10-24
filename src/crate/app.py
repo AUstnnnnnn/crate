@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import inspect
+import os
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +20,20 @@ from crate.library import resolve_path
 from crate.probe import probe
 
 _PRESETS = ("library", "sample", "video")
+
+
+def open_path(path: Path, reveal: bool = False) -> None:
+    """Open a folder, or with reveal=True select a file, in the OS file manager."""
+    if sys.platform == "win32":
+        if reveal:
+            subprocess.run(["explorer", f"/select,{path}"], check=False)
+        else:
+            os.startfile(path)
+    elif sys.platform == "darwin":
+        subprocess.run(["open", *(["-R"] if reveal else []), str(path)], check=False)
+    else:
+        # ponytail: no file-select on Linux, opens the containing folder instead
+        subprocess.run(["xdg-open", str(path.parent if reveal else path)], check=False)
 _GLYPH = {"queued": "·", "downloading": "▸", "done": "◉", "error": "✕"}
 
 _BANNER = (
@@ -45,6 +61,14 @@ CRATE_THEME = Theme(
         "footer-key-foreground": "#e0a44a",
     },
 )
+
+
+def error_detail(exc: Exception) -> str:
+    """First line of an exception, minus yt-dlp's redundant 'ERROR: ' prefix."""
+    msg = next(iter(str(exc).splitlines()), "").strip()
+    if msg.startswith("ERROR:"):
+        msg = msg[len("ERROR:"):].strip()
+    return msg or exc.__class__.__name__
 
 
 def progress_to_fraction(d: dict) -> float:
@@ -112,7 +136,7 @@ class CrateApp(App):
         table.add_column("", width=2)
         table.add_column("title", width=44)
         table.add_column("preset", width=9)
-        table.add_column("status", width=14)
+        table.add_column("status", width=22)
         table.display = False
         self.query_one(Footer).display = self.cfg.show_hints
         self._restore_state()
@@ -173,10 +197,10 @@ class CrateApp(App):
             self.action_download()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        # Enter on a queue row reveals the file in Finder
+        # Enter on a queue row reveals the file in Finder / Explorer
         item = next((i for i in self.items if i.row_key == event.row_key), None)
         if item and item.path and item.path.exists():
-            subprocess.run(["open", "-R", str(item.path)], check=False)
+            open_path(item.path, reveal=True)
         elif item:
             self.notify("file not found on disk", severity="warning")
 
@@ -196,9 +220,40 @@ class CrateApp(App):
         url = self.query_one("#url", Input).value.strip()
         if not url:
             return
-        item = self.enqueue(url, self.current_preset)
         self.query_one("#url", Input).value = ""
+        from crate.applemusic import is_apple_url
+        if is_apple_url(url) and self._is_apple_album(url):
+            # one Apple album link becomes one queue row per song
+            self.run_worker(self._expand_apple_album(url), exclusive=False)
+            return
+        item = self.enqueue(url, self.current_preset)
         self.run_worker(self._worker(item), exclusive=False)
+
+    @staticmethod
+    def _is_apple_album(url: str) -> bool:
+        from crate.applemusic import AppleMusicError, parse_apple_url
+        try:
+            return parse_apple_url(url).kind == "album"
+        except AppleMusicError:
+            return False  # let the worker report the parse failure properly
+
+    async def _expand_apple_album(self, url: str) -> None:
+        import asyncio
+        from crate.applemusic import resolve
+
+        preset = self.current_preset
+        try:
+            tracks = await asyncio.to_thread(resolve, url)
+        except Exception as exc:
+            self.notify(error_detail(exc), title="apple music",
+                        severity="error", timeout=12)
+            return
+        self.notify(f"album: queueing {len(tracks)} songs")
+        for track in tracks:
+            item = self.enqueue(track.source_url, preset)
+            item.title = f"{track.artist} — {track.title}"
+            self._refresh_row(item)
+            self.run_worker(self._worker(item), exclusive=False)
 
     async def _worker(self, item: QueueItem) -> None:
         res = self._download_fn(item)
@@ -230,7 +285,10 @@ class CrateApp(App):
             item.detail = f"{dest.stat().st_size // 1024} KB"
         except Exception as exc:  # per-item isolation — never crash the app
             item.status = "error"
-            item.detail = str(exc).splitlines()[0][:60]
+            item.detail = error_detail(exc)
+            # the status column truncates — the toast carries the whole reason
+            self.notify(item.detail, title="download failed",
+                        severity="error", timeout=12)
         self._refresh_row(item)
         self._save_state()
 
@@ -271,5 +329,6 @@ class CrateApp(App):
         self.push_screen(AdvancedScreen(self.cfg), _store)
 
     def action_open_folder(self) -> None:
-        subprocess.run(["open", str(self._effective_cfg().library_root)],
-                       check=False)
+        root = self._effective_cfg().library_root
+        root.mkdir(parents=True, exist_ok=True)
+        open_path(root)

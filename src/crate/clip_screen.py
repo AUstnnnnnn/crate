@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -66,7 +67,10 @@ class ClipScreen(Screen):
             ext = self.cfg.sample_format
             tmp = Path(tempfile.gettempdir()) / f"crate_preview.{ext}"
             run_ffmpeg(build_clip_argv(self.source, tmp, in_s, out_s))
-            subprocess.Popen(["afplay", str(tmp)])
+            player = (["afplay"] if sys.platform == "darwin" else
+                      ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet"])
+            subprocess.Popen([*player, str(tmp)], stdin=subprocess.DEVNULL,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.query_one("#clipstatus", Static).update("[cyan]previewing…[/]")
         except Exception as exc:
             self.query_one("#clipstatus", Static).update(f"[red]{exc}[/]")

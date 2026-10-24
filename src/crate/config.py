@@ -28,7 +28,7 @@ def load_config(path: Path | None = None) -> Config:
     path = path or DEFAULT_CONFIG_PATH
     if not path.exists():
         return Config.defaults()
-    data = tomllib.loads(path.read_text())
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
     root = data.get("library_root", _DEFAULT_LIBRARY_ROOT)
     return Config(
         library_root=Path(root).expanduser(),
@@ -45,4 +45,4 @@ def save_config(cfg: Config, path: Path | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     data = asdict(cfg)
     data["library_root"] = str(cfg.library_root)
-    path.write_text(tomli_w.dumps(data))
+    path.write_text(tomli_w.dumps(data), encoding="utf-8")

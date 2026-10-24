@@ -33,5 +33,6 @@ def probe(path: Path, runner=subprocess.run) -> ProbeResult:
         "ffprobe", "-v", "quiet", "-print_format", "json",
         "-show_format", "-show_streams", str(path),
     ]
-    proc = runner(argv, capture_output=True, text=True)
+    proc = runner(argv, capture_output=True, text=True,
+                  encoding="utf-8", errors="replace")
     return parse_ffprobe_json(proc.stdout)

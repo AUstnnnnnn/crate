@@ -61,3 +61,47 @@ async def test_f1_toggles_and_persists_hints(tmp_path, monkeypatch):
         assert app.cfg.show_hints is False
         assert app.query_one(Footer).display is False
         assert saved["show"] is False
+
+
+def test_error_detail_strips_ytdlp_prefix():
+    exc = RuntimeError("ERROR: unable to download video data: HTTP Error 403: Forbidden\ntrace")
+    from crate.app import error_detail
+    assert error_detail(exc) == "unable to download video data: HTTP Error 403: Forbidden"
+
+
+def test_error_detail_falls_back_to_type_name():
+    from crate.app import error_detail
+    assert error_detail(ValueError("")) == "ValueError"
+
+
+@pytest.mark.asyncio
+async def test_apple_album_link_expands_into_one_row_per_song(tmp_path, monkeypatch):
+    import crate.applemusic as am
+    from crate.applemusic import AppleTrack
+    tracks = [
+        AppleTrack("Xtal", "Aphex Twin", "SAW", 294.0, "", "https://music.apple.com/us/album/a/1?i=2"),
+        AppleTrack("Ageispolis", "Aphex Twin", "SAW", 300.0, "", "https://music.apple.com/us/album/a/1?i=3"),
+    ]
+    monkeypatch.setattr(am, "resolve", lambda url, **kw: tracks)
+    cfg = Config(library_root=tmp_path)
+    app = CrateApp(cfg=cfg, download_fn=lambda *a, **k: None)
+    async with app.run_test() as pilot:
+        app.query_one("#url", Input).value = "https://music.apple.com/us/album/saw/1"
+        app.query_one("#url", Input).focus()
+        await pilot.press("enter")
+        await pilot.pause()
+        assert [i.title for i in app.items] == [
+            "Aphex Twin — Xtal", "Aphex Twin — Ageispolis"]
+        assert all(i.url.startswith("https://music.apple.com") for i in app.items)
+
+
+@pytest.mark.asyncio
+async def test_apple_song_link_enqueues_one_row(tmp_path):
+    cfg = Config(library_root=tmp_path)
+    app = CrateApp(cfg=cfg, download_fn=lambda *a, **k: None)
+    async with app.run_test() as pilot:
+        app.query_one("#url", Input).value = (
+            "https://music.apple.com/us/album/a/1?i=2")
+        app.query_one("#url", Input).focus()
+        await pilot.press("enter")
+        assert len(app.items) == 1

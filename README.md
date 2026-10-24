@@ -15,14 +15,22 @@ wrapped in a fast TUI, running entirely on your machine.
   - `library` — best quality, original container, kept by uploader.
   - `sample` — audio extracted to WAV (lossless, sampler-ready).
   - `video` — best video + audio, merged to mp4.
+- **Apple Music links resolve, not rip.** Paste a `music.apple.com` song link
+  and crate reads its tags from Apple's public catalogue API, finds the same
+  recording on a source it can actually download, and tags the file with
+  Apple's artist/title. Album links fan out into one queue row per song.
+  Apple's own streams are DRM-encrypted and are never touched; if a track is
+  too obscure to exist anywhere else, crate falls back to Apple's public
+  preview clip and names the file `<title> (preview)` so it is never mistaken
+  for the full take.
 - **Metadata travels with the file.** Title, artist, date, and source URL are
   embedded directly into each download (via ffmpeg) — no sidecar files.
 - **Persistent crate.** Finished downloads stay in the list across sessions.
-  Press Enter on any row to reveal that file in Finder.
+  Press Enter on any row to reveal that file in Finder / Explorer.
 - **Live queue.** Each download is its own row with live progress. One failed
   URL never takes down the others.
 - **Clip trimming (the good part).** On any finished item, mark in/out
-  timecodes, audition the slice with `afplay`, and export just that piece as a
+  timecodes, audition the slice (`afplay` on macOS, `ffplay` elsewhere), and export just that piece as a
   WAV — straight into your samples folder.
 
 Everything lands in an organized tree under your library root:
@@ -38,16 +46,32 @@ Everything lands in an organized tree under your library root:
 ## Requirements
 
 - Python 3.11+
-- `ffmpeg` and `ffprobe` on your `PATH` (`brew install ffmpeg`)
-- macOS for clip preview (`afplay`); downloads/exports work anywhere
+- `ffmpeg`, `ffprobe` (and `ffplay` for clip preview off macOS) on your `PATH`
+  - macOS: `brew install ffmpeg`
+  - Windows: `winget install Gyan.FFmpeg`, then open a new terminal
+  - Linux: `sudo apt install ffmpeg` (or your distro's equivalent)
+
+Runs on macOS, Windows (Windows Terminal recommended) and Linux.
 
 ## Install
 
 ```bash
+git clone https://github.com/AUstnnnnnn/crate.git && cd crate
 python3 -m venv venv
 ./venv/bin/pip install -e .        # installs deps + the `crate` command
 ln -sf "$PWD/venv/bin/crate" ~/.local/bin/crate   # put it on your PATH
 ```
+
+Windows (PowerShell):
+
+```powershell
+git clone https://github.com/AUstnnnnnn/crate.git; cd crate
+py -m venv venv
+venv\Scripts\pip install -e .
+venv\Scripts\crate              # or add venv\Scripts to your PATH
+```
+
+Or skip the venv entirely with `pipx install git+https://github.com/AUstnnnnnn/crate.git`.
 
 ## Run
 
@@ -64,7 +88,7 @@ crate                       # from anywhere
 | Enter (URL field) | download the URL with the selected preset |
 | ◄ / ► | switch mode (library / sample / video) |
 | ↑ / ↓ | move in the queue |
-| Enter (on a row) | reveal that file in Finder |
+| Enter (on a row) | reveal that file in Finder / Explorer |
 | F1 | show/hide the hint bar (remembered across sessions) |
 | F3 | clip the selected finished item |
 | F2 | advanced options (format, normalize, output override) — next download only |
@@ -76,7 +100,7 @@ preview the slice, `e` to export, `Esc` to go back.
 
 ## Config
 
-`~/.config/crate/config.toml` (created with defaults on first run):
+`~/.config/crate/config.toml` (on Windows `%USERPROFILE%\.config\crate\config.toml`):
 
 ```toml
 library_root = "~/Desktop/crate"

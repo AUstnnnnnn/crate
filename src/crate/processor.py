@@ -28,6 +28,7 @@ def build_extract_argv(src: Path, dst: Path, normalize: bool) -> list[str]:
 
 
 def run_ffmpeg(argv: list[str], runner=subprocess.run) -> None:
-    proc = runner(argv, capture_output=True, text=True)
+    proc = runner(argv, capture_output=True, text=True,
+                  encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise ProcessorError(getattr(proc, "stderr", "") or "ffmpeg failed")

@@ -12,13 +12,13 @@ def test_clip_argv_is_sample_accurate():
     # -ss must come AFTER -i for sample-accurate seeking
     assert argv.index("-ss") > i
     assert "-to" in argv
-    assert argv[-1] == "/o.wav"
+    assert argv[-1] == str(Path("/o.wav"))
 
 
 def test_extract_argv_no_normalize():
     argv = build_extract_argv(Path("/a.webm"), Path("/o.wav"), normalize=False)
     assert "loudnorm" not in " ".join(argv)
-    assert argv[-1] == "/o.wav"
+    assert argv[-1] == str(Path("/o.wav"))
 
 
 def test_extract_argv_with_normalize():
