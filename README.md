@@ -45,7 +45,7 @@ Everything lands in an organized tree under your library root:
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.11+ (the installer brings its own)
 - `ffmpeg`, `ffprobe` (and `ffplay` for clip preview off macOS) on your `PATH`
   - macOS: `brew install ffmpeg`
   - Windows: `winget install Gyan.FFmpeg`, then open a new terminal
@@ -55,30 +55,31 @@ Runs on macOS, Windows (Windows Terminal recommended) and Linux.
 
 ## Install
 
+macOS / Linux:
+
 ```bash
-git clone https://github.com/AUstnnnnnn/crate.git && cd crate
-python3 -m venv venv
-./venv/bin/pip install -e .        # installs deps + the `crate` command
-ln -sf "$PWD/venv/bin/crate" ~/.local/bin/crate   # put it on your PATH
+curl -LsSf https://raw.githubusercontent.com/AUstnnnnnn/crate/main/install.sh | sh
 ```
 
 Windows (PowerShell):
 
 ```powershell
-git clone https://github.com/AUstnnnnnn/crate.git; cd crate
-py -m venv venv
-venv\Scripts\pip install -e .
-venv\Scripts\crate              # or add venv\Scripts to your PATH
+irm https://raw.githubusercontent.com/AUstnnnnnn/crate/main/install.ps1 | iex
 ```
 
-Or skip the venv entirely with `pipx install git+https://github.com/AUstnnnnnn/crate.git`.
+That installs [uv](https://docs.astral.sh/uv/) if you don't have it, uses it to
+install crate with its own Python, and installs ffmpeg if it's missing. Then
+open a new terminal and run `crate`. Run the same line again to update.
 
-## Run
+Uninstall: `uv tool uninstall crate`.
+
+### From source
 
 ```bash
-crate                       # from anywhere
-# or, without the PATH symlink:
-./venv/bin/python -m crate
+git clone https://github.com/AUstnnnnnn/crate.git && cd crate
+python3 -m venv venv
+./venv/bin/pip install -e .
+./venv/bin/crate
 ```
 
 ## Keys
